@@ -5,7 +5,11 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update
-from sse_starlette.sse import EventSourceResponse
+try:
+    from sse_starlette.sse import EventSourceResponse
+    SSE_AVAILABLE = True
+except ImportError:
+    SSE_AVAILABLE = False
 
 from app.database import get_db
 from app.models import Alert, AlertRule
@@ -108,6 +112,8 @@ async def alert_stats(db: AsyncSession = Depends(get_db)):
 @router.get("/stream")
 async def stream_alerts(request: Request, db: AsyncSession = Depends(get_db)):
     """SSE endpoint that streams new alerts every 5 seconds."""
+    if not SSE_AVAILABLE:
+        return {"error": "sse-starlette not installed"}
 
     # Track the most recent alert seen at connection time
     result = await db.execute(
