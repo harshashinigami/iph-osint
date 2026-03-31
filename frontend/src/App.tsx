@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './auth/AuthContext';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -11,6 +11,12 @@ import AlertsPage from './pages/AlertsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import SearchPage from './pages/SearchPage';
+
+/** Catch-all: send unauthenticated users to /login, authenticated to /. */
+function CatchAll() {
+  const { isAuthenticated } = useAuth();
+  return <Navigate to={isAuthenticated ? '/' : '/login'} replace />;
+}
 
 export default function App() {
   return (
@@ -28,7 +34,7 @@ export default function App() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<CatchAll />} />
         </Routes>
       </BrowserRouter>
       <Toaster

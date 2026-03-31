@@ -70,3 +70,44 @@ async def setup():
         return {"status": "ok", "message": "Database initialized and users seeded"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/v1/system/status")
+async def system_status():
+    """Return row counts for all major tables plus server metadata."""
+    from datetime import datetime, timezone
+    from sqlalchemy import text
+    from app.database import async_session
+
+    table_names = [
+        "users", "sources", "raw_posts", "processed_posts",
+        "entities", "entity_relations", "alerts", "keywords", "reports",
+    ]
+
+    db_type = (
+        "postgresql"
+        if settings.database_url.startswith("postgres")
+        else "sqlite"
+    )
+
+    counts: dict[str, int] = {}
+    try:
+        async with async_session() as db:
+            for table in table_names:
+                result = await db.execute(text(f"SELECT COUNT(*) FROM {table}"))
+                counts[table] = result.scalar() or 0
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "counts": {},
+            "server_time": datetime.now(timezone.utc).isoformat(),
+            "db_type": db_type,
+        }
+
+    return {
+        "status": "ok",
+        "counts": counts,
+        "server_time": datetime.now(timezone.utc).isoformat(),
+        "db_type": db_type,
+    }
