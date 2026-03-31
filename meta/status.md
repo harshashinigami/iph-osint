@@ -1,8 +1,8 @@
 # Project Status
 
 **Last Updated:** 2026-03-31 16:10 UTC
-**Phase:** Phase 0 COMPLETE — Moving to Phase 1 (Seed Data + Dashboard)
-**Overall Progress:** ~25%
+**Phase:** Phase 1 — Seed data done, Render deployment in progress
+**Overall Progress:** ~30%
 **GitHub:** https://github.com/harshashinigami/iph-osint
 
 ## Current State

@@ -56,3 +56,15 @@ app.include_router(seed_router)
 @app.get("/health")
 async def health():
     return {"status": "ok", "platform": settings.app_name}
+
+
+@app.post("/setup")
+async def setup():
+    """Initialize DB tables and seed default users. Safe to call multiple times."""
+    try:
+        await init_db()
+        from app.seed.bootstrap import seed_users
+        await seed_users()
+        return {"status": "ok", "message": "Database initialized and users seeded"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
