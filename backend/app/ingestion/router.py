@@ -59,6 +59,14 @@ async def collect_rss_feeds(db: AsyncSession = Depends(get_db)):
     return result
 
 
+@router.post("/collect/telegram")
+async def collect_telegram_feed(db: AsyncSession = Depends(get_db)):
+    """Fetch messages from Telegram channels/groups via Bot API."""
+    from app.ingestion.collectors.telegram_bot import collect_telegram
+    result = await collect_telegram(db)
+    return result
+
+
 @router.get("/posts")
 async def list_posts(platform: str = None, limit: int = 50, offset: int = 0, db: AsyncSession = Depends(get_db)):
     query = select(RawPost).order_by(RawPost.collected_at.desc()).limit(limit).offset(offset)
