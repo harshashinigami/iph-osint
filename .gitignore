@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Generated reports
+backend/reports_output/
+
+# Zone identifiers (Windows)
+*:Zone.Identifier
