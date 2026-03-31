@@ -5,16 +5,14 @@ pydantic-settings
 
 # Database
 sqlalchemy[asyncio]>=2.0
-aiosqlite
 asyncpg
-alembic
+aiosqlite
 
 # Auth
 python-jose[cryptography]
 passlib[bcrypt]
 
-# NLP & Processing
-spacy>=3.7
+# NLP (lightweight — spaCy installed separately if needed)
 vaderSentiment
 langdetect
 phonenumbers
@@ -22,8 +20,6 @@ phonenumbers
 # Data Collection
 feedparser
 httpx
-telethon
-asyncpraw
 
 # Graph & Analysis
 networkx
@@ -40,9 +36,6 @@ faker
 
 # SSE
 sse-starlette
-
-# Redis
-redis
 
 # Utilities
 python-multipart
