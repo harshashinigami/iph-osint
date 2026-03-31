@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getAlerts, acknowledgeAlert, getAlertStats } from '../api/endpoints';
 import type { AlertItem } from '../types';
 import toast from 'react-hot-toast';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -16,6 +18,9 @@ export default function AlertsPage() {
   const [filter, setFilter] = useState({ severity: '', alert_type: '' });
   const [stats, setStats] = useState<{ total: number; unread: number; by_severity: Record<string, number> } | null>(null);
   const [selected, setSelected] = useState<AlertItem | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const esRef = useRef<EventSource | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadAlerts = () => {
     const params: Record<string, unknown> = { limit: 50 };
@@ -24,6 +29,56 @@ export default function AlertsPage() {
     getAlerts(params).then(({ data }) => setAlerts(data));
     getAlertStats().then(({ data }) => setStats(data));
   };
+
+  const connectSSE = () => {
+    if (esRef.current) {
+      esRef.current.close();
+    }
+    const es = new EventSource(`${API_URL}/api/v1/alerts/stream`);
+    esRef.current = es;
+
+    es.addEventListener('alert', (e: MessageEvent) => {
+      try {
+        const alert: AlertItem = JSON.parse(e.data);
+        setAlerts((prev) => [alert, ...prev]);
+        toast.custom(
+          () => (
+            <div className={`px-4 py-3 rounded-lg border text-sm font-medium ${SEVERITY_COLORS[alert.severity] || 'bg-slate-800 text-slate-200 border-slate-600'}`}>
+              <span className="font-semibold uppercase mr-2">[{alert.severity}]</span>
+              {alert.title}
+            </div>
+          ),
+          { duration: 5000 }
+        );
+      } catch {
+        // ignore malformed events
+      }
+    });
+
+    es.onopen = () => {
+      setLiveConnected(true);
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
+    };
+
+    es.onerror = () => {
+      setLiveConnected(false);
+      es.close();
+      esRef.current = null;
+      // auto-reconnect after 5s
+      reconnectTimer.current = setTimeout(connectSSE, 5000);
+    };
+  };
+
+  useEffect(() => {
+    connectSSE();
+    return () => {
+      if (esRef.current) esRef.current.close();
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    };
+  }, []);
 
   useEffect(() => { loadAlerts(); }, [filter]);
 
@@ -36,7 +91,20 @@ export default function AlertsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Alert Management</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-white">Alert Management</h1>
+          {liveConnected ? (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/30 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-semibold text-green-400">LIVE</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700/50 border border-slate-600/50 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-slate-500" />
+              <span className="text-xs font-semibold text-slate-500">DISCONNECTED</span>
+            </div>
+          )}
+        </div>
         {stats && (
           <div className="flex gap-4 text-sm">
             <span className="text-slate-400">Total: <span className="text-white font-medium">{stats.total}</span></span>

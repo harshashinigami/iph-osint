@@ -80,10 +80,19 @@ async def process_posts(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/posts")
-async def list_posts(platform: str = None, limit: int = 50, offset: int = 0, db: AsyncSession = Depends(get_db)):
-    query = select(RawPost).order_by(RawPost.collected_at.desc()).limit(limit).offset(offset)
+async def list_posts(
+    platform: str = None,
+    search: str = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(RawPost).order_by(RawPost.collected_at.desc())
     if platform:
         query = query.where(RawPost.platform == platform)
+    if search:
+        query = query.where(RawPost.content.ilike(f"%{search}%"))
+    query = query.limit(limit).offset(offset)
     result = await db.execute(query)
     posts = result.scalars().all()
     return [

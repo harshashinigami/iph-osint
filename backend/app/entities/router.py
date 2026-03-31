@@ -34,6 +34,47 @@ async def list_entities(
     ]
 
 
+@router.get("/stats")
+async def get_entity_stats(db: AsyncSession = Depends(get_db)):
+    """Return aggregate statistics for the entity graph."""
+    # Total counts
+    total_entities = (await db.execute(select(func.count()).select_from(Entity))).scalar_one()
+    total_relations = (await db.execute(select(func.count()).select_from(EntityRelation))).scalar_one()
+
+    # Counts broken down by entity type
+    type_rows = (
+        await db.execute(
+            select(Entity.entity_type, func.count().label("cnt"))
+            .group_by(Entity.entity_type)
+            .order_by(func.count().desc())
+        )
+    ).fetchall()
+    by_type = {row.entity_type: row.cnt for row in type_rows}
+
+    # Top 5 highest risk_score entities
+    top_risk_result = await db.execute(
+        select(Entity).order_by(Entity.risk_score.desc()).limit(5)
+    )
+    top_risk = [
+        {
+            "id": str(e.id),
+            "entity_type": e.entity_type,
+            "value": e.value,
+            "display_name": e.display_name,
+            "risk_score": e.risk_score,
+            "mention_count": e.mention_count,
+        }
+        for e in top_risk_result.scalars().all()
+    ]
+
+    return {
+        "total_entities": total_entities,
+        "total_relations": total_relations,
+        "by_type": by_type,
+        "top_risk_entities": top_risk,
+    }
+
+
 @router.get("/{entity_id}")
 async def get_entity(entity_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Entity).where(Entity.id == entity_id))

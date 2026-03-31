@@ -15,12 +15,23 @@ export default function EntityGraphPage() {
   const [selectedNode, setSelectedNode] = useState<EntityItem | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [minConnections, setMinConnections] = useState(1);
+  const [counts, setCounts] = useState<{ nodes: number; edges: number } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     const params: Record<string, unknown> = { min_connections: minConnections, limit: 300 };
     if (typeFilter) params.entity_type = typeFilter;
 
     getGraphData(params).then(({ data }) => {
+      setCounts({ nodes: data.nodes.length, edges: data.edges.length });
+
+      if (data.nodes.length === 0) {
+        setIsEmpty(true);
+        return;
+      }
+      setIsEmpty(false);
+
       if (!containerRef.current) return;
 
       const nodes = new DataSet(data.nodes.map((n: GraphNode) => ({
@@ -64,13 +75,28 @@ export default function EntityGraphPage() {
         }
       });
     });
-  }, [typeFilter, minConnections]);
+  }, [typeFilter, minConnections, refreshKey]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+      <div className="space-y-4 flex-none">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Entity Knowledge Graph</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-white">Entity Knowledge Graph</h1>
+          {counts && (
+            <div className="flex gap-3 text-sm">
+              <span className="text-slate-400">Entities: <span className="text-white font-medium">{counts.nodes}</span></span>
+              <span className="text-slate-400">Relations: <span className="text-white font-medium">{counts.edges}</span></span>
+            </div>
+          )}
+        </div>
         <div className="flex gap-3">
+          <button
+            onClick={() => setRefreshKey((k) => k + 1)}
+            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-sm text-white transition-colors"
+          >
+            Refresh
+          </button>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -102,18 +128,27 @@ export default function EntityGraphPage() {
           </div>
         ))}
       </div>
+      </div>{/* end flex-none header */}
 
-      <div className="flex gap-4">
-        {/* Graph Canvas */}
-        <div
-          ref={containerRef}
-          className="flex-1 bg-slate-900 rounded-xl border border-slate-700"
-          style={{ height: 'calc(100vh - 220px)' }}
-        />
+      <div className="flex gap-4 flex-1 min-h-0 mt-4">
+        {/* Graph Canvas or Empty State */}
+        {isEmpty ? (
+          <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <p className="text-slate-400 text-sm">No entity data available.</p>
+              <p className="text-slate-500 text-xs">Run NLP processing from Settings to populate the graph.</p>
+            </div>
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="flex-1 bg-slate-900 rounded-xl border border-slate-700"
+          />
+        )}
 
         {/* Detail Panel */}
         {selectedNode && (
-          <div className="w-80 bg-slate-900 rounded-xl border border-slate-700 p-5 space-y-4">
+          <div className="w-80 bg-slate-900 rounded-xl border border-slate-700 p-5 space-y-4 overflow-y-auto">
             <h3 className="text-lg font-semibold text-white">{selectedNode.display_name || selectedNode.value}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-slate-400">Type</span><span className="text-white capitalize">{selectedNode.entity_type}</span></div>
