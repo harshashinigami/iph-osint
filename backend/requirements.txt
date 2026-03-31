@@ -1,0 +1,49 @@
+# Core
+fastapi
+uvicorn[standard]
+pydantic-settings
+
+# Database
+sqlalchemy[asyncio]>=2.0
+aiosqlite
+asyncpg
+alembic
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+
+# NLP & Processing
+spacy>=3.7
+vaderSentiment
+langdetect
+phonenumbers
+
+# Data Collection
+feedparser
+httpx
+telethon
+asyncpraw
+
+# Graph & Analysis
+networkx
+python-louvain
+
+# Reports
+fpdf2
+python-docx
+openpyxl
+jinja2
+
+# Data Generation
+faker
+
+# SSE
+sse-starlette
+
+# Redis
+redis
+
+# Utilities
+python-multipart
+aiofiles

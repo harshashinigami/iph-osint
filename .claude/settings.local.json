@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /home/harsha/projects/iph -name *.json -o -name *.txt -o -name *.toml -o -name *.py -o -name *.js -o -name *.ts -o -name *.yml -o -name *.yaml)",
+      "Bash(sudo apt:*)",
+      "Bash(tmux:*)",
+      "Bash(npx --version)",
+      "Bash(npx -y fal-ai-mcp --help)",
+      "Bash(npx -y gemini-mcp --help)",
+      "Bash(npx -y openrouter-mcp --help)",
+      "Bash(npx -y stitch-mcp --help)",
+      "Bash(npx -y interactive-drawer --help)",
+      "WebSearch",
+      "Bash(gh auth:*)",
+      "Bash(git config:*)",
+      "Bash(conda install:*)",
+      "Bash(pip install:*)",
+      "Bash(mkdir -p ~/bin)",
+      "Bash(curl -sL https://github.com/cli/cli/releases/download/v2.67.0/gh_2.67.0_linux_amd64.tar.gz)",
+      "Bash(tar xz:*)",
+      "Bash(cp /tmp/gh_2.67.0_linux_amd64/bin/gh ~/bin/gh)",
+      "Bash(export PATH=\"$HOME/bin:$PATH\")",
+      "Bash(gh --version)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo:*)",
+      "Bash(pg_isready)",
+      "Bash(sudo service:*)",
+      "Bash(pg_ctlcluster 14 main start)",
+      "Bash(pg_lsclusters)",
+      "Read(//etc/**)",
+      "Bash(dpkg -l)",
+      "Bash(pip3 install:*)",
+      "Bash(python3:*)",
+      "Bash(DATABASE_URL=\"sqlite+aiosqlite:///./iph.db\" python3 -c \"\nfrom app.main import app\nprint\\('FastAPI app loaded successfully!'\\)\nprint\\(f'Routes: {len\\(app.routes\\)}'\\)\nfor r in app.routes:\n    if hasattr\\(r, 'path'\\):\n        print\\(f'  {r.path}'\\)\n\" 2>&1)",
+      "Bash(curl -s -X POST http://localhost:8000/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"username\"\"\"\":\"\"\"\"admin\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"admin123\"\"\"\"}')"
+    ]
+  }
+}
