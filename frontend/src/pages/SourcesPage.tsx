@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getSources, toggleSource, runSeed } from '../api/endpoints';
+import api from '../api/client';
 import type { SourceItem } from '../types';
 import toast from 'react-hot-toast';
 
 export default function SourcesPage() {
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [seeding, setSeeding] = useState(false);
+  const [collecting, setCollecting] = useState(false);
 
   const load = () => getSources().then(({ data }) => setSources(data));
   useEffect(() => { load(); }, []);
@@ -33,13 +35,22 @@ export default function SourcesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Data Sources</h1>
-        <button
-          onClick={handleSeed}
-          disabled={seeding}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg text-sm font-medium transition-colors"
-        >
-          {seeding ? 'Seeding...' : 'Generate Demo Data'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={async () => { setCollecting(true); try { const { data } = await api.post('/api/v1/ingestion/collect/rss'); toast.success(`Collected ${data.new_posts} new articles from RSS feeds`); load(); } catch { toast.error('RSS collection failed'); } setCollecting(false); }}
+            disabled={collecting}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            {collecting ? 'Collecting...' : 'Fetch Live News (RSS)'}
+          </button>
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            {seeding ? 'Seeding...' : 'Generate Demo Data'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">

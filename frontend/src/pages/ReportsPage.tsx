@@ -73,6 +73,7 @@ export default function ReportsPage() {
             <th className="text-left text-xs text-slate-400 uppercase p-3">Type</th>
             <th className="text-left text-xs text-slate-400 uppercase p-3">Format</th>
             <th className="text-left text-xs text-slate-400 uppercase p-3">Generated</th>
+            <th className="text-left text-xs text-slate-400 uppercase p-3">Download</th>
           </tr></thead>
           <tbody>
             {reports.map((r) => (
@@ -81,10 +82,17 @@ export default function ReportsPage() {
                 <td className="p-3 text-xs text-slate-400 capitalize">{r.report_type}</td>
                 <td className="p-3 text-xs text-slate-300 uppercase">{r.file_format}</td>
                 <td className="p-3 text-xs text-slate-500">{new Date(r.created_at).toLocaleString()}</td>
+                <td className="p-3">
+                  <a href={`${import.meta.env.VITE_API_URL || ''}/api/v1/reports/${r.id}/download`}
+                    className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                    target="_blank" rel="noopener noreferrer">
+                    Download
+                  </a>
+                </td>
               </tr>
             ))}
             {reports.length === 0 && (
-              <tr><td colSpan={4} className="p-8 text-center text-slate-500">No reports generated yet.</td></tr>
+              <tr><td colSpan={5} className="p-8 text-center text-slate-500">No reports generated yet.</td></tr>
             )}
           </tbody>
         </table>
