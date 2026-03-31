@@ -51,6 +51,14 @@ async def toggle_source(source_id: str, data: dict, db: AsyncSession = Depends(g
     return {"id": str(source.id), "is_active": source.is_active}
 
 
+@router.post("/collect/rss")
+async def collect_rss_feeds(db: AsyncSession = Depends(get_db)):
+    """Trigger RSS feed collection from all configured Indian news portals."""
+    from app.ingestion.collectors.rss import collect_rss
+    result = await collect_rss(db)
+    return result
+
+
 @router.get("/posts")
 async def list_posts(platform: str = None, limit: int = 50, offset: int = 0, db: AsyncSession = Depends(get_db)):
     query = select(RawPost).order_by(RawPost.collected_at.desc()).limit(limit).offset(offset)
