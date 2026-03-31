@@ -1,12 +1,13 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pathlib import Path
 
 
 class Settings(BaseSettings):
     # App
     app_name: str = "ILA OSINT Intelligence Platform"
     environment: str = "development"
-    debug: bool = True
+    debug: bool = False
 
     # Database (SQLite for local dev, PostgreSQL on Render)
     database_url: str = "sqlite+aiosqlite:///./iph.db"
@@ -14,21 +15,18 @@ class Settings(BaseSettings):
     # Auth
     jwt_secret: str = "dev-secret-change-in-production"
     jwt_algorithm: str = "HS256"
-    jwt_expiry_minutes: int = 480  # 8 hours
-
-    # Redis (optional for PoC)
-    redis_url: str = "redis://localhost:6379/0"
+    jwt_expiry_minutes: int = 480
 
     # Telegram Bot
     telegram_bot_token: str = ""
 
-    # CORS
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
-
     # Demo mode
     demo_mode: bool = True
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": ".env" if Path(".env").exists() else None,
+        "env_file_encoding": "utf-8",
+    }
 
 
 @lru_cache

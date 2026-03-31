@@ -51,7 +51,12 @@
       "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\" SERVICE_ID=\"srv-d75rodbuibrs73btgve0\" DEPLOY_ID=\"dep-d75rodruibrs73btgvm0\" __NEW_LINE_ab76029ace2e8738__ curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/$SERVICE_ID/deploys/$DEPLOY_ID\")",
       "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\")",
       "Bash(curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/deploys/dep-d75rodruibrs73btgvm0\")",
-      "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\" curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/logs?limit=20\")"
+      "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\" curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/logs?limit=20\")",
+      "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\" curl -s -X POST \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/deploys\" -H \"Authorization: Bearer $RENDER_API\" -H \"Content-Type: application/json\")",
+      "Bash(curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/deploys?limit=1\")",
+      "Bash(curl:*)",
+      "Bash(DATABASE_URL=\"postgresql+asyncpg://iph_db_user:ybYZ85ZlWw9p0486vH7v0vlrRHX3rdk3@dpg-d75qkluslomc73e09t2g-a/iph_db\" python3 -c \":*)",
+      "Bash(DATABASE_URL=\"postgresql+asyncpg://test:test@localhost/test\" python3 -c \"\nfrom app.config import get_settings\nget_settings.cache_clear\\(\\)\ns = get_settings\\(\\)\nprint\\(f'DB URL starts with: {s.database_url[:20]}'\\)\nprint\\('Config loaded OK'\\)\n\" 2>&1)"
     ]
   },
   "disabledMcpjsonServers": [
