@@ -9,6 +9,8 @@ import KeywordsPage from './pages/KeywordsPage';
 import EntityGraphPage from './pages/EntityGraphPage';
 import AlertsPage from './pages/AlertsPage';
 import ReportsPage from './pages/ReportsPage';
+import SettingsPage from './pages/SettingsPage';
+import SearchPage from './pages/SearchPage';
 
 export default function App() {
   return (
@@ -18,11 +20,13 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/sources" element={<SourcesPage />} />
             <Route path="/keywords" element={<KeywordsPage />} />
             <Route path="/graph" element={<EntityGraphPage />} />
             <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

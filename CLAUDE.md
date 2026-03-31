@@ -27,6 +27,8 @@ On every new session, Claude MUST:
 - **Inference logging:** Every significant decision/finding → markdown in `meta/`
 - **Session resilience:** All progress persisted. Context window is volatile.
 - **Directory autonomy:** Claude has full control over file/folder organization
+- **Checkpoint after each task:** After completing any major feature/fix, update `meta/status.md` and commit. This is non-negotiable — power cuts happen.
+- **Token efficiency:** Opus plans + architects. Sonnet sub-agents code. Don't burn Opus tokens on boilerplate.
 
 ## Directory Structure
 ```

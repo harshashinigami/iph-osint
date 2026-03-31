@@ -1,16 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield
+  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield, SlidersHorizontal, Database
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/sources', icon: Search, label: 'Sources' },
+  { to: '/search', icon: Search, label: 'Search' },
+  { to: '/sources', icon: Database, label: 'Sources' },
   { to: '/keywords', icon: Settings, label: 'Keywords' },
   { to: '/graph', icon: Network, label: 'Entity Graph' },
   { to: '/alerts', icon: Bell, label: 'Alerts' },
   { to: '/reports', icon: FileText, label: 'Reports' },
+  { to: '/settings', icon: SlidersHorizontal, label: 'Settings' },
 ];
 
 export default function Sidebar() {

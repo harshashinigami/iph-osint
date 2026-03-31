@@ -116,3 +116,13 @@ export interface ReportItem {
   file_format: string;
   created_at: string;
 }
+
+export interface PostItem {
+  id: string;
+  platform: string;
+  author_name: string | null;
+  content: string;
+  language: string | null;
+  collected_at: string;
+  is_processed: boolean;
+}

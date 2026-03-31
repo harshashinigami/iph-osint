@@ -1,6 +1,12 @@
-from fastapi import APIRouter, Depends
+import asyncio
+import json
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update
+from sse_starlette.sse import EventSourceResponse
+
 from app.database import get_db
 from app.models import Alert, AlertRule
 
@@ -97,3 +103,51 @@ async def alert_stats(db: AsyncSession = Depends(get_db)):
         "unread": unread,
         "by_severity": {r.severity: r.count for r in by_severity.fetchall()},
     }
+
+
+@router.get("/stream")
+async def stream_alerts(request: Request, db: AsyncSession = Depends(get_db)):
+    """SSE endpoint that streams new alerts every 5 seconds."""
+
+    # Track the most recent alert seen at connection time
+    result = await db.execute(
+        select(Alert.created_at).order_by(Alert.created_at.desc()).limit(1)
+    )
+    row = result.scalar_one_or_none()
+    last_seen: datetime = row if row else datetime.utcfromtimestamp(0)
+
+    async def event_generator():
+        nonlocal last_seen
+        while True:
+            if await request.is_disconnected():
+                break
+
+            # Use a fresh session for each poll to avoid stale state
+            from app.database import async_session
+            async with async_session() as poll_db:
+                new_alerts_result = await poll_db.execute(
+                    select(Alert)
+                    .where(Alert.created_at > last_seen)
+                    .order_by(Alert.created_at.asc())
+                )
+                new_alerts = new_alerts_result.scalars().all()
+
+            if new_alerts:
+                last_seen = new_alerts[-1].created_at
+                for alert in new_alerts:
+                    payload = {
+                        "id": str(alert.id),
+                        "title": alert.title,
+                        "description": alert.description,
+                        "severity": alert.severity,
+                        "alert_type": alert.alert_type,
+                        "is_read": alert.is_read,
+                        "is_acknowledged": alert.is_acknowledged,
+                        "metadata": alert.extra_data,
+                        "created_at": alert.created_at.isoformat(),
+                    }
+                    yield {"event": "alert", "data": json.dumps(payload)}
+
+            await asyncio.sleep(5)
+
+    return EventSourceResponse(event_generator())

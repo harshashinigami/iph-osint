@@ -53,18 +53,22 @@ async def toggle_source(source_id: str, data: dict, db: AsyncSession = Depends(g
 
 @router.post("/collect/rss")
 async def collect_rss_feeds(db: AsyncSession = Depends(get_db)):
-    """Trigger RSS feed collection from all configured Indian news portals."""
+    """Trigger RSS feed collection from all configured Indian news portals, then run NLP."""
     from app.ingestion.collectors.rss import collect_rss
-    result = await collect_rss(db)
-    return result
+    from app.processing.pipeline import process_unprocessed
+    collection_result = await collect_rss(db)
+    nlp_result = await process_unprocessed(db)
+    return {"collection": collection_result, "processing": nlp_result}
 
 
 @router.post("/collect/telegram")
 async def collect_telegram_feed(db: AsyncSession = Depends(get_db)):
-    """Fetch messages from Telegram channels/groups via Bot API."""
+    """Fetch messages from Telegram channels/groups via Bot API, then run NLP."""
     from app.ingestion.collectors.telegram_bot import collect_telegram
-    result = await collect_telegram(db)
-    return result
+    from app.processing.pipeline import process_unprocessed
+    collection_result = await collect_telegram(db)
+    nlp_result = await process_unprocessed(db)
+    return {"collection": collection_result, "processing": nlp_result}
 
 
 @router.post("/process")

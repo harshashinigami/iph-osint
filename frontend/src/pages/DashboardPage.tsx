@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Activity, Users, AlertTriangle, Radio, TrendingUp } from 'lucide-react';
-import { getStats, getPlatformBreakdown, getSentimentOverview, getThreatLevel, getTopEntities, getRecentAlerts, getTrendingTopics, getGeoData } from '../api/endpoints';
-import type { DashboardStats, PlatformData, SentimentData, ThreatLevel, EntityItem, AlertItem, TopicData, GeoData } from '../types';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Activity, Users, AlertTriangle, Radio, TrendingUp, RefreshCw } from 'lucide-react';
+import { getStats, getPlatformBreakdown, getSentimentOverview, getThreatLevel, getTopEntities, getRecentAlerts, getTrendingTopics, getGeoData, getVolumeTimeline } from '../api/endpoints';
+import type { DashboardStats, PlatformData, SentimentData, ThreatLevel, EntityItem, AlertItem, TopicData, GeoData, VolumeData } from '../types';
 import GeoMap from '../components/dashboard/GeoMap';
+
+const PLATFORM_COLORS: Record<string, string> = {
+  rss: '#3b82f6',
+  telegram: '#06b6d4',
+  twitter: '#8b5cf6',
+  reddit: '#f97316',
+  default: '#6b7280',
+};
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number | string; icon: React.ElementType; color: string }) {
   return (
@@ -35,6 +43,83 @@ function SeverityBadge({ severity }: { severity: string }) {
   );
 }
 
+function VolumeTimeline({ data }: { data: VolumeData[] }) {
+  if (!data.length) {
+    return <div className="h-32 flex items-center justify-center text-slate-500 text-sm">No volume data available</div>;
+  }
+
+  // Group by day, collect platforms
+  const dayMap = new Map<string, Record<string, number>>();
+  const platformSet = new Set<string>();
+
+  for (const item of data) {
+    platformSet.add(item.platform);
+    if (!dayMap.has(item.day)) dayMap.set(item.day, {});
+    dayMap.get(item.day)![item.platform] = item.count;
+  }
+
+  const days = Array.from(dayMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const platforms = Array.from(platformSet);
+
+  // Find max total per day for scaling
+  const maxTotal = Math.max(...days.map(([, counts]) => Object.values(counts).reduce((a, b) => a + b, 0)));
+
+  return (
+    <div>
+      {/* Legend */}
+      <div className="flex items-center gap-4 mb-3">
+        {platforms.map((p) => (
+          <div key={p} className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: PLATFORM_COLORS[p] || PLATFORM_COLORS.default }} />
+            <span className="text-xs text-slate-400 capitalize">{p}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Bar chart */}
+      <div className="flex items-end gap-1 h-28 overflow-x-auto pb-5 relative">
+        {days.map(([day, counts]) => {
+          const total = Object.values(counts).reduce((a, b) => a + b, 0);
+          const heightPct = maxTotal ? (total / maxTotal) * 100 : 0;
+          const label = day.slice(5); // MM-DD
+
+          return (
+            <div key={day} className="flex flex-col items-center flex-1 min-w-[24px] group relative">
+              {/* Tooltip */}
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                <div className="font-medium mb-0.5">{day}</div>
+                {platforms.map((p) => counts[p] ? (
+                  <div key={p} className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: PLATFORM_COLORS[p] || PLATFORM_COLORS.default }} />
+                    <span className="capitalize">{p}: {counts[p]}</span>
+                  </div>
+                ) : null)}
+                <div className="text-slate-400 border-t border-slate-700 mt-0.5 pt-0.5">Total: {total}</div>
+              </div>
+
+              {/* Stacked bar */}
+              <div className="w-full flex flex-col-reverse rounded-sm overflow-hidden" style={{ height: `${Math.max(heightPct, 2)}%`, minHeight: '2px' }}>
+                {platforms.map((p) => {
+                  const pct = total ? ((counts[p] || 0) / total) * 100 : 0;
+                  return pct > 0 ? (
+                    <div
+                      key={p}
+                      style={{ height: `${pct}%`, backgroundColor: PLATFORM_COLORS[p] || PLATFORM_COLORS.default }}
+                    />
+                  ) : null;
+                })}
+              </div>
+
+              {/* Day label — show every 5th */}
+              <span className="text-slate-600 text-[9px] mt-1 absolute -bottom-4">{days.indexOf(days.find(([d]) => d === day)!) % 5 === 0 ? label : ''}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [platforms, setPlatforms] = useState<PlatformData[]>([]);
@@ -44,13 +129,17 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [topics, setTopics] = useState<TopicData[]>([]);
   const [geoData, setGeoData] = useState<GeoData[]>([]);
+  const [volumeData, setVolumeData] = useState<VolumeData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
+  const fetchAll = useCallback(() => {
     Promise.all([
       getStats(), getPlatformBreakdown(), getSentimentOverview(),
-      getThreatLevel(), getTopEntities(), getRecentAlerts(10), getTrendingTopics(), getGeoData(),
-    ]).then(([s, p, sent, t, e, a, top, geo]) => {
+      getThreatLevel(), getTopEntities(), getRecentAlerts(10), getTrendingTopics(), getGeoData(), getVolumeTimeline(30),
+    ]).then(([s, p, sent, t, e, a, top, geo, vol]) => {
       setStats(s.data);
       setPlatforms(p.data);
       setSentiment(sent.data);
@@ -59,9 +148,27 @@ export default function DashboardPage() {
       setAlerts(a.data);
       setTopics(top.data);
       setGeoData(geo.data);
+      setVolumeData(vol.data);
+      setLastUpdated(new Date());
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(fetchAll, 30_000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [autoRefresh, fetchAll]);
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><div className="text-slate-400">Loading intelligence data...</div></div>;
@@ -74,7 +181,20 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Intelligence Dashboard</h1>
-        <span className="text-xs text-slate-500">Last updated: {new Date().toLocaleString()}</span>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setAutoRefresh((v) => !v)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              autoRefresh
+                ? 'bg-emerald-600/20 border-emerald-600/40 text-emerald-400 hover:bg-emerald-600/30'
+                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
+            }`}
+          >
+            <RefreshCw className={`w-3 h-3 ${autoRefresh ? 'animate-spin' : ''}`} style={autoRefresh ? { animationDuration: '3s' } : {}} />
+            Auto-refresh: {autoRefresh ? 'ON' : 'OFF'}
+          </button>
+          <span className="text-xs text-slate-500">Last updated: {lastUpdated.toLocaleString()}</span>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -84,6 +204,12 @@ export default function DashboardPage() {
         <StatCard label="Entities Tracked" value={stats?.total_entities || 0} icon={Users} color="bg-purple-600" />
         <StatCard label="Active Alerts" value={stats?.active_alerts || 0} icon={AlertTriangle} color="bg-red-600" />
         <StatCard label="Active Sources" value={stats?.active_sources || 0} icon={Radio} color="bg-amber-600" />
+      </div>
+
+      {/* Volume Timeline */}
+      <div className="bg-slate-900 rounded-xl p-5 border border-slate-700">
+        <h3 className="text-sm text-slate-400 uppercase tracking-wider mb-4">Post Volume — Last 30 Days</h3>
+        <VolumeTimeline data={volumeData} />
       </div>
 
       <div className="grid grid-cols-3 gap-6">

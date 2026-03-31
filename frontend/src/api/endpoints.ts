@@ -1,5 +1,5 @@
 import api from './client';
-import type { DashboardStats, VolumeData, PlatformData, SentimentData, GeoData, EntityItem, GraphData, AlertItem, AlertRule, TopicData, ThreatLevel, SourceItem, ReportItem } from '../types';
+import type { DashboardStats, VolumeData, PlatformData, SentimentData, GeoData, EntityItem, GraphData, AlertItem, AlertRule, TopicData, ThreatLevel, SourceItem, ReportItem, PostItem } from '../types';
 
 // Auth
 export const login = (username: string, password: string) =>
@@ -32,6 +32,8 @@ export const getAlertStats = () => api.get('/api/v1/alerts/stats');
 
 // Ingestion
 export const getSources = () => api.get<SourceItem[]>('/api/v1/ingestion/sources');
+export const getPosts = (params?: { platform?: string; limit?: number; offset?: number }) =>
+  api.get<PostItem[]>('/api/v1/ingestion/posts', { params });
 export const toggleSource = (id: string, isActive: boolean) => api.patch(`/api/v1/ingestion/sources/${id}`, { is_active: isActive });
 
 // Reports

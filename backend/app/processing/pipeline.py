@@ -16,7 +16,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models import RawPost, ProcessedPost, Entity, EntityPostMention, gen_uuid
+from app.models import RawPost, ProcessedPost, Entity, EntityPostMention, Alert, gen_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,9 @@ KNOWN_ORGS = [
     "Google", "Meta", "Twitter", "WhatsApp", "Telegram",
     "ISI", "Al-Qaeda", "ISIS", "LeT", "JeM",
 ]
+
+# Threat organisations that always trigger a critical alert
+THREAT_ORGS = {"ISI", "Al-Qaeda", "ISIS", "LeT", "JeM"}
 
 # ── Indian Cities with Lat/Lon ─────────────────────────────────────────────────
 INDIAN_CITIES: dict[str, tuple[float, float]] = {
@@ -270,6 +273,7 @@ async def process_unprocessed(db: AsyncSession, batch_size: int = 100) -> dict:
     """
     processed_count = 0
     error_count = 0
+    alert_count = 0
     errors: list[str] = []
 
     # Fetch unprocessed posts
@@ -375,6 +379,49 @@ async def process_unprocessed(db: AsyncSession, batch_size: int = 100) -> dict:
                         entity_type, entity_value, raw_post.id, entity_err,
                     )
 
+            # ── Alert generation ───────────────────────────────────────────
+            mentioned_threat_orgs = THREAT_ORGS.intersection(set(ner_results.get("orgs", [])))
+            should_alert = threat_score > 0.5 or bool(mentioned_threat_orgs)
+
+            if should_alert:
+                if mentioned_threat_orgs or threat_score > 0.7:
+                    alert_severity = "critical"
+                else:
+                    alert_severity = "high"
+
+                title_body = content_clean[:80]
+                alert_title = f"High threat detected: {title_body}"
+
+                alert_type = threat_categories[0] if threat_categories else "threat"
+
+                description_parts = []
+                if threat_categories:
+                    description_parts.append(f"Threat categories: {', '.join(threat_categories)}")
+                description_parts.append(f"Sentiment: {sentiment_label} ({sentiment_score:+.2f})")
+                if mentioned_threat_orgs:
+                    description_parts.append(f"Threat orgs mentioned: {', '.join(sorted(mentioned_threat_orgs))}")
+                entity_summary = [e["value"] for e in extracted_entities[:5]]
+                if entity_summary:
+                    description_parts.append(f"Entities: {', '.join(entity_summary)}")
+
+                alert = Alert(
+                    id=gen_uuid(),
+                    title=alert_title,
+                    description="\n".join(description_parts),
+                    severity=alert_severity,
+                    alert_type=alert_type,
+                    source_post_id=raw_post.id,
+                    extra_data={
+                        "threat_score": threat_score,
+                        "threat_categories": threat_categories,
+                        "sentiment_label": sentiment_label,
+                        "sentiment_score": sentiment_score,
+                        "threat_orgs": sorted(mentioned_threat_orgs),
+                    },
+                )
+                db.add(alert)
+                alert_count += 1
+
             processed_count += 1
 
         except Exception as e:
@@ -397,8 +444,9 @@ async def process_unprocessed(db: AsyncSession, batch_size: int = 100) -> dict:
 
     return {
         "processed": processed_count,
+        "alerts_created": alert_count,
         "errors": error_count,
         "total_found": len(raw_posts),
-        "message": f"Processed {processed_count} posts with {error_count} errors.",
+        "message": f"Processed {processed_count} posts, generated {alert_count} alerts, {error_count} errors.",
         **({"error_details": errors[:10]} if errors else {}),
     }
