@@ -5,13 +5,41 @@ import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-500/20 text-red-400 border-red-500/30',
-  high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  low: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  info: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+// Neon severity: badge classes + inline glow
+const SEVERITY_STYLES: Record<string, { cls: string; glow: string }> = {
+  critical: {
+    cls:  'bg-red-500/15 text-red-400 border-red-500/50',
+    glow: '0 0 10px rgba(255,51,85,0.5), 0 0 20px rgba(255,51,85,0.2)',
+  },
+  high: {
+    cls:  'bg-orange-500/15 text-orange-400 border-orange-500/40',
+    glow: '0 0 8px rgba(255,120,0,0.4)',
+  },
+  medium: {
+    cls:  'bg-yellow-500/15 text-yellow-400 border-yellow-500/40',
+    glow: '0 0 8px rgba(255,200,0,0.3)',
+  },
+  low: {
+    cls:  'bg-cyan-500/15 text-cyan-400 border-cyan-500/40',
+    glow: '0 0 8px rgba(0,240,255,0.3)',
+  },
+  info: {
+    cls:  'bg-slate-500/15 text-slate-400 border-slate-500/30',
+    glow: 'none',
+  },
 };
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const s = SEVERITY_STYLES[severity] || SEVERITY_STYLES.info;
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-xs font-mono font-medium border ${s.cls}`}
+      style={{ boxShadow: s.glow }}
+    >
+      {severity}
+    </span>
+  );
+}
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
@@ -31,9 +59,7 @@ export default function AlertsPage() {
   };
 
   const connectSSE = () => {
-    if (esRef.current) {
-      esRef.current.close();
-    }
+    if (esRef.current) esRef.current.close();
     const es = new EventSource(`${API_URL}/api/v1/alerts/stream`);
     esRef.current = es;
 
@@ -41,33 +67,32 @@ export default function AlertsPage() {
       try {
         const alert: AlertItem = JSON.parse(e.data);
         setAlerts((prev) => [alert, ...prev]);
+        const s = SEVERITY_STYLES[alert.severity] || SEVERITY_STYLES.info;
         toast.custom(
           () => (
-            <div className={`px-4 py-3 rounded-lg border text-sm font-medium ${SEVERITY_COLORS[alert.severity] || 'bg-slate-800 text-slate-200 border-slate-600'}`}>
-              <span className="font-semibold uppercase mr-2">[{alert.severity}]</span>
+            <div
+              className={`px-4 py-3 rounded-lg border text-sm font-mono font-medium ${s.cls}`}
+              style={{ boxShadow: s.glow }}
+            >
+              <span className="font-bold uppercase mr-2">[{alert.severity}]</span>
               {alert.title}
             </div>
           ),
           { duration: 5000 }
         );
       } catch {
-        // ignore malformed events
+        // ignore malformed
       }
     });
 
     es.onopen = () => {
       setLiveConnected(true);
-      if (reconnectTimer.current) {
-        clearTimeout(reconnectTimer.current);
-        reconnectTimer.current = null;
-      }
+      if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
     };
-
     es.onerror = () => {
       setLiveConnected(false);
       es.close();
       esRef.current = null;
-      // auto-reconnect after 5s
       reconnectTimer.current = setTimeout(connectSSE, 5000);
     };
   };
@@ -88,45 +113,86 @@ export default function AlertsPage() {
     loadAlerts();
   };
 
+  const selectStyle = {
+    background: 'rgba(0,240,255,0.04)',
+    border: '1px solid rgba(0,240,255,0.18)',
+    color: '#e2f0ff',
+    borderRadius: '0.5rem',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.8rem',
+    fontFamily: 'monospace',
+    outline: 'none',
+  } as React.CSSProperties;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">Alert Management</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            <span className="text-cyan-400 text-glow-cyan">ALERT</span> MANAGEMENT
+          </h1>
           {liveConnected ? (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/30 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-semibold text-green-400">LIVE</span>
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{
+                background: 'rgba(0,255,136,0.08)',
+                border: '1px solid rgba(0,255,136,0.35)',
+                boxShadow: '0 0 10px rgba(0,255,136,0.15)',
+              }}
+            >
+              <span className="w-2 h-2 rounded-full bg-green-400 pulse-dot-green" />
+              <span className="text-[10px] font-mono font-bold" style={{ color: '#00ff88' }}>LIVE</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700/50 border border-slate-600/50 rounded-full">
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              style={{
+                background: 'rgba(100,100,120,0.15)',
+                border: '1px solid rgba(100,100,120,0.3)',
+              }}
+            >
               <span className="w-2 h-2 rounded-full bg-slate-500" />
-              <span className="text-xs font-semibold text-slate-500">DISCONNECTED</span>
+              <span className="text-[10px] font-mono font-bold text-slate-500">DISCONNECTED</span>
             </div>
           )}
         </div>
         {stats && (
-          <div className="flex gap-4 text-sm">
-            <span className="text-slate-400">Total: <span className="text-white font-medium">{stats.total}</span></span>
-            <span className="text-red-400">Unread: <span className="font-medium">{stats.unread}</span></span>
-            {Object.entries(stats.by_severity || {}).map(([sev, count]) => (
-              <span key={sev} className="text-slate-400 capitalize">{sev}: <span className="text-white">{count}</span></span>
-            ))}
+          <div className="flex gap-4 text-xs font-mono">
+            <span className="text-cyan-400/50">
+              TOTAL: <span className="text-white font-bold">{stats.total}</span>
+            </span>
+            <span className="text-red-400">
+              UNREAD: <span className="font-bold">{stats.unread}</span>
+            </span>
+            {Object.entries(stats.by_severity || {}).map(([sev, count]) => {
+              const s = SEVERITY_STYLES[sev] || SEVERITY_STYLES.info;
+              return (
+                <span key={sev} className={`capitalize ${s.cls.split(' ').find(c => c.startsWith('text-')) || 'text-slate-400'}`}>
+                  {sev}: <span className="font-bold">{count}</span>
+                </span>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Filters */}
       <div className="flex gap-3">
-        <select value={filter.severity} onChange={(e) => setFilter({ ...filter, severity: e.target.value })}
-          className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white">
+        <select
+          value={filter.severity}
+          onChange={(e) => setFilter({ ...filter, severity: e.target.value })}
+          style={selectStyle}
+        >
           <option value="">All Severities</option>
           {['critical', 'high', 'medium', 'low', 'info'].map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
-        <select value={filter.alert_type} onChange={(e) => setFilter({ ...filter, alert_type: e.target.value })}
-          className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white">
+        <select
+          value={filter.alert_type}
+          onChange={(e) => setFilter({ ...filter, alert_type: e.target.value })}
+          style={selectStyle}
+        >
           <option value="">All Types</option>
           {['spike', 'threat', 'entity', 'keyword', 'anomaly', 'fraud', 'coordination'].map((t) => (
             <option key={t} value={t}>{t}</option>
@@ -136,56 +202,103 @@ export default function AlertsPage() {
 
       <div className="flex gap-4">
         {/* Alert Table */}
-        <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+        <div
+          className="flex-1 rounded-xl overflow-hidden"
+          style={{
+            background: 'rgba(0,0,0,0.40)',
+            border: '1px solid rgba(0,240,255,0.12)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-700">
-                <th className="text-left text-xs text-slate-400 uppercase p-3">Severity</th>
-                <th className="text-left text-xs text-slate-400 uppercase p-3">Title</th>
-                <th className="text-left text-xs text-slate-400 uppercase p-3">Type</th>
-                <th className="text-left text-xs text-slate-400 uppercase p-3">Time</th>
-                <th className="text-left text-xs text-slate-400 uppercase p-3">Action</th>
+              <tr style={{ borderBottom: '1px solid rgba(0,240,255,0.10)' }}>
+                {['Severity', 'Title', 'Type', 'Time', 'Action'].map((h) => (
+                  <th key={h} className="text-left p-3">
+                    <span className="text-[10px] text-cyan-400/50 uppercase font-mono tracking-widest">{h}</span>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {alerts.map((a) => (
-                <tr key={a.id}
-                  onClick={() => setSelected(a)}
-                  className={`border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer ${!a.is_read ? 'bg-slate-800/30' : ''} ${selected?.id === a.id ? 'bg-blue-900/20' : ''}`}>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${SEVERITY_COLORS[a.severity] || ''}`}>
-                      {a.severity}
-                    </span>
-                  </td>
-                  <td className="p-3 text-sm text-white max-w-md truncate">{a.title}</td>
-                  <td className="p-3 text-xs text-slate-400 capitalize">{a.alert_type}</td>
-                  <td className="p-3 text-xs text-slate-500">{new Date(a.created_at).toLocaleString()}</td>
-                  <td className="p-3">
-                    {!a.is_acknowledged && (
-                      <button onClick={(e) => { e.stopPropagation(); handleAcknowledge(a.id); }}
-                        className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
-                        ACK
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {alerts.map((a) => {
+                const isSelected = selected?.id === a.id;
+                return (
+                  <tr
+                    key={a.id}
+                    onClick={() => setSelected(a)}
+                    className="cursor-pointer transition-colors"
+                    style={{
+                      borderBottom: '1px solid rgba(0,240,255,0.05)',
+                      background: isSelected
+                        ? 'rgba(0,240,255,0.07)'
+                        : !a.is_read
+                          ? 'rgba(0,240,255,0.03)'
+                          : 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = 'rgba(0,240,255,0.04)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = !a.is_read ? 'rgba(0,240,255,0.03)' : 'transparent';
+                    }}
+                  >
+                    <td className="p-3">
+                      <SeverityBadge severity={a.severity} />
+                    </td>
+                    <td className="p-3 text-sm text-white/90 max-w-md truncate">{a.title}</td>
+                    <td className="p-3 text-xs text-cyan-400/50 capitalize font-mono">{a.alert_type}</td>
+                    <td className="p-3 text-xs text-cyan-500/40 font-mono">{new Date(a.created_at).toLocaleString()}</td>
+                    <td className="p-3">
+                      {!a.is_acknowledged && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleAcknowledge(a.id); }}
+                          className="text-[10px] px-2 py-1 rounded font-mono font-bold tracking-widest transition-all hover:scale-105"
+                          style={{
+                            background: 'rgba(0,240,255,0.10)',
+                            border: '1px solid rgba(0,240,255,0.35)',
+                            color: '#00f0ff',
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 8px rgba(0,240,255,0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                          }}
+                        >
+                          ACK
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Detail Panel */}
         {selected && (
-          <div className="w-96 bg-slate-900 rounded-xl border border-slate-700 p-5 space-y-4">
+          <div
+            className="w-96 rounded-xl p-5 space-y-4"
+            style={{
+              background: 'rgba(0,0,0,0.50)',
+              border: '1px solid rgba(0,240,255,0.18)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
             <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 rounded text-xs font-medium border ${SEVERITY_COLORS[selected.severity] || ''}`}>{selected.severity}</span>
-              <span className="text-xs text-slate-400 capitalize">{selected.alert_type}</span>
+              <SeverityBadge severity={selected.severity} />
+              <span className="text-xs text-cyan-400/50 capitalize font-mono">{selected.alert_type}</span>
             </div>
-            <h3 className="text-lg font-semibold text-white">{selected.title}</h3>
-            <p className="text-sm text-slate-300">{selected.description}</p>
-            <div className="text-xs text-slate-500">
-              <p>Created: {new Date(selected.created_at).toLocaleString()}</p>
-              <p>Status: {selected.is_acknowledged ? 'Acknowledged' : 'Pending'}</p>
+            <h3 className="text-base font-semibold text-white/95 leading-snug">{selected.title}</h3>
+            <p className="text-sm text-cyan-200/70 leading-relaxed">{selected.description}</p>
+            <div className="text-[10px] font-mono space-y-1" style={{ color: 'rgba(0,240,255,0.35)' }}>
+              <p>CREATED: {new Date(selected.created_at).toLocaleString()}</p>
+              <p>STATUS: {selected.is_acknowledged
+                ? <span style={{ color: '#00ff88' }}>ACKNOWLEDGED</span>
+                : <span style={{ color: '#ffaa00' }}>PENDING</span>}
+              </p>
             </div>
           </div>
         )}

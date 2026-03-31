@@ -24,12 +24,16 @@ function NotificationBell() {
   return (
     <button
       onClick={() => navigate('/alerts')}
-      className="relative p-2 text-slate-400 hover:text-slate-200 transition-colors"
+      className="relative p-2 transition-colors"
+      style={{ color: unread > 0 ? '#00f0ff' : 'rgba(0,240,255,0.35)' }}
       aria-label="View alerts"
     >
-      <Bell className="w-5 h-5" />
+      <Bell
+        className="w-5 h-5"
+        style={unread > 0 ? { filter: 'drop-shadow(0 0 5px rgba(0,240,255,0.7))' } : {}}
+      />
       {unread > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1 leading-none">
+        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1 leading-none shadow-[0_0_8px_rgba(255,51,85,0.6)]">
           {unread > 99 ? '99+' : unread}
         </span>
       )}
@@ -45,11 +49,18 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
+    <div className="flex min-h-screen" style={{ background: '#050510' }}>
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top header bar */}
-        <header className="h-12 bg-slate-900 border-b border-slate-700 flex items-center justify-end px-6 shrink-0">
+        <header
+          className="h-12 flex items-center justify-end px-6 shrink-0"
+          style={{
+            background: 'rgba(0,0,0,0.50)',
+            backdropFilter: 'blur(8px)',
+            borderBottom: '1px solid rgba(0,240,255,0.08)',
+          }}
+        >
           <NotificationBell />
         </header>
         <main className="flex-1 overflow-auto">
