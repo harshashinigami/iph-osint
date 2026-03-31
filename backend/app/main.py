@@ -10,10 +10,13 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await init_db()
-    # Seed default users if DB is empty
-    from app.seed.bootstrap import seed_users
-    await seed_users()
+    try:
+        await init_db()
+        from app.seed.bootstrap import seed_users
+        await seed_users()
+        print(f"[STARTUP] Database initialized. URL: {settings.database_url[:30]}...")
+    except Exception as e:
+        print(f"[STARTUP] Database init failed (will retry on first request): {e}")
     yield
     # Shutdown
 
