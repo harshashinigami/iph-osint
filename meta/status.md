@@ -1,8 +1,8 @@
 # Project Status
 
 **Last Updated:** 2026-03-31 16:10 UTC
-**Phase:** Phase 0 — Scaffolding (Backend done, Frontend next)
-**Overall Progress:** ~12%
+**Phase:** Phase 0 COMPLETE — Moving to Phase 1 (Seed Data + Dashboard)
+**Overall Progress:** ~25%
 **GitHub:** https://github.com/harshashinigami/iph-osint
 
 ## Current State
@@ -12,7 +12,8 @@
 - [x] Architecture designed for Render.com
 - [x] GitHub repo created and pushing
 - [x] Backend scaffold: 34 API routes, 12 DB tables, JWT auth
-- [ ] Frontend scaffold: React + Vite + Tailwind + 6 pages
+- [x] Frontend scaffold: React + Vite + Tailwind + 6 pages (Login, Dashboard, Graph, Alerts, Sources, Keywords, Reports)
+- [x] Telegram bot token saved (7703810812:AAH...)
 - [ ] Seed data: run generator, validate 10K records
 - [ ] Dashboard UI: 9 widgets (charts, maps, graphs)
 - [ ] Entity graph: vis-network visualization

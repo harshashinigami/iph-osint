@@ -40,7 +40,10 @@
       "Bash(npm --version)",
       "Bash(npm create:*)",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/seed/run)",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/seed/run -w \"\\\\n%{http_code}\")",
+      "Bash(DATABASE_URL=\"sqlite+aiosqlite:///./iph.db\" python3 -c \":*)"
     ]
   },
   "disabledMcpjsonServers": [

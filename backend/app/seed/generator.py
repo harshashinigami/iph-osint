@@ -379,49 +379,41 @@ async def generate_all(db: AsyncSession) -> dict:
     # ── Entity Relations ─────────────────────────────
     relation_types = ["co_mentioned", "communicates_with", "affiliated", "financial_link", "same_as"]
     relation_count = 0
+    seen_relations = set()  # track (source, target, type) to avoid duplicates
+
+    def add_relation(src_id, tgt_id, rtype, w=None):
+        nonlocal relation_count
+        key = (str(src_id), str(tgt_id), rtype)
+        if key in seen_relations or str(src_id) == str(tgt_id):
+            return
+        seen_relations.add(key)
+        r = EntityRelation(
+            source_entity_id=src_id, target_entity_id=tgt_id,
+            relation_type=rtype, weight=w or round(random.uniform(0.3, 0.9), 2),
+        )
+        db.add(r)
+        relation_count += 1
 
     # Create UPI fraud network (dense cluster)
     upi_entities = [e for e in entities if e.entity_type == "upi"]
     phone_entities = [e for e in entities if e.entity_type == "phone"]
     for i, upi in enumerate(upi_entities):
         if i < len(phone_entities):
-            r = EntityRelation(
-                source_entity_id=upi.id, target_entity_id=phone_entities[i].id,
-                relation_type="financial_link", weight=round(random.uniform(0.7, 1.0), 2),
-            )
-            db.add(r)
-            relation_count += 1
-        # UPI-to-UPI links (mule network)
+            add_relation(upi.id, phone_entities[i].id, "financial_link", round(random.uniform(0.7, 1.0), 2))
         if i > 0:
-            r = EntityRelation(
-                source_entity_id=upi_entities[i-1].id, target_entity_id=upi.id,
-                relation_type="financial_link", weight=round(random.uniform(0.5, 0.9), 2),
-            )
-            db.add(r)
-            relation_count += 1
+            add_relation(upi_entities[i-1].id, upi.id, "financial_link", round(random.uniform(0.5, 0.9), 2))
 
     # Create person-org affiliations
     person_entities = [e for e in entities if e.entity_type == "person"]
     org_entities = [e for e in entities if e.entity_type == "org"]
     for person in person_entities:
-        affiliated_orgs = random.sample(org_entities, k=random.randint(0, 2))
-        for org in affiliated_orgs:
-            r = EntityRelation(
-                source_entity_id=person.id, target_entity_id=org.id,
-                relation_type="affiliated", weight=round(random.uniform(0.3, 0.9), 2),
-            )
-            db.add(r)
-            relation_count += 1
+        for org in random.sample(org_entities, k=random.randint(0, 2)):
+            add_relation(person.id, org.id, "affiliated")
 
     # Random co-mention relations
     for _ in range(500):
         e1, e2 = random.sample(entities, 2)
-        r = EntityRelation(
-            source_entity_id=e1.id, target_entity_id=e2.id,
-            relation_type=random.choice(relation_types), weight=round(random.uniform(0.1, 0.8), 2),
-        )
-        db.add(r)
-        relation_count += 1
+        add_relation(e1.id, e2.id, random.choice(relation_types))
 
     # Crypto-IP-Domain links (cyber threat cluster)
     crypto_entities = [e for e in entities if e.entity_type == "crypto"]
@@ -430,9 +422,8 @@ async def generate_all(db: AsyncSession) -> dict:
     for crypto in crypto_entities:
         ip = random.choice(ip_entities)
         domain = random.choice(domain_entities)
-        db.add(EntityRelation(source_entity_id=crypto.id, target_entity_id=ip.id, relation_type="communicates_with", weight=0.8))
-        db.add(EntityRelation(source_entity_id=ip.id, target_entity_id=domain.id, relation_type="co_mentioned", weight=0.7))
-        relation_count += 2
+        add_relation(crypto.id, ip.id, "communicates_with", 0.8)
+        add_relation(ip.id, domain.id, "co_mentioned", 0.7)
 
     await db.flush()
     print(f"[SEED] Created {relation_count} entity relations")
