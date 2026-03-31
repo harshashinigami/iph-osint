@@ -1,8 +1,11 @@
 # Project Status
 
 **Last Updated:** 2026-03-31 16:10 UTC
-**Phase:** Phase 1 — Seed data done, Render deployment in progress
-**Overall Progress:** ~30%
+**Phase:** Phase 1 — DEPLOYED LIVE on Render.com
+**Overall Progress:** ~35%
+**Frontend:** https://iph-frontend.onrender.com
+**Backend:** https://iph-backend-peix.onrender.com
+**API Docs:** https://iph-backend-peix.onrender.com/docs
 **GitHub:** https://github.com/harshashinigami/iph-osint
 
 ## Current State

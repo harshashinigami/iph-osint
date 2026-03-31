@@ -42,6 +42,7 @@ from app.ingestion.router import router as ingestion_router
 from app.entities.router import router as entities_router
 from app.alerts.router import router as alerts_router
 from app.reports.router import router as reports_router
+from app.keywords.router import router as keywords_router
 from app.seed.router import router as seed_router
 
 app.include_router(auth_router)
@@ -50,6 +51,7 @@ app.include_router(ingestion_router)
 app.include_router(entities_router)
 app.include_router(alerts_router)
 app.include_router(reports_router)
+app.include_router(keywords_router)
 app.include_router(seed_router)
 
 
