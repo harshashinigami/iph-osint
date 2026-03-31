@@ -1,29 +1,39 @@
 # Project Status
 
-**Last Updated:** 2026-03-31
-**Phase:** Planning & Research
-**Session:** Initial setup
+**Last Updated:** 2026-03-31 16:10 UTC
+**Phase:** Phase 0 — Scaffolding (Backend done, Frontend next)
+**Overall Progress:** ~12%
+**GitHub:** https://github.com/harshashinigami/iph-osint
 
 ## Current State
 - [x] PRD read and understood (88KB, 7 modules, 9 EPICs, 25+ ATP scenarios)
 - [x] Project harness created (CLAUDE.md, meta/, directory structure)
-- [x] Memories saved (user, project, feedback)
-- [ ] PRD decomposed into PoC-scoped modules
-- [ ] Open-source OSINT projects researched
-- [ ] PoC architecture designed for Render.com
-- [ ] Application built and deployed
+- [x] Research: 50+ OSINT projects evaluated
+- [x] Architecture designed for Render.com
+- [x] GitHub repo created and pushing
+- [x] Backend scaffold: 34 API routes, 12 DB tables, JWT auth
+- [ ] Frontend scaffold: React + Vite + Tailwind + 6 pages
+- [ ] Seed data: run generator, validate 10K records
+- [ ] Dashboard UI: 9 widgets (charts, maps, graphs)
+- [ ] Entity graph: vis-network visualization
+- [ ] Alerts: management screen + SSE stream
+- [ ] Ingestion: RSS feeds + optional Telegram
+- [ ] Reports: PDF/DOCX generation
+- [ ] Deploy to Render.com
 
 ## Blockers
-None currently.
+- No PostgreSQL or Docker on WSL2 (using SQLite locally — fine for PoC)
+- Telegram credentials not yet provided (optional)
 
 ## Next Steps
-1. Decompose PRD modules → what's in PoC scope vs out
-2. Research GitHub OSINT projects for reuse
-3. Design lightweight architecture for Render.com
-4. Start building
+1. Frontend scaffold (React + Vite + Tailwind)
+2. Seed data generator → populate DB
+3. Dashboard page with 9 widgets
+4. Entity graph visualization
+5. Deploy to Render.com
 
-## Key Decisions Made
-- Deploy on Render.com, not AWS
-- Use synthetic data for paywalled sources
-- Adapt open-source OSINT projects, don't build from scratch
-- Budget: ~$200/month for paid APIs
+## Key Decisions
+- Build from scratch (not fork) — reference osint-worldview, World Monitor, IntellyWeave
+- SQLite local, PostgreSQL on Render
+- Render.com manual setup (not CLI)
+- OpenSpec not needed — PRD already structured

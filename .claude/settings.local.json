@@ -35,7 +35,18 @@
       "Bash(pip3 install:*)",
       "Bash(python3:*)",
       "Bash(DATABASE_URL=\"sqlite+aiosqlite:///./iph.db\" python3 -c \"\nfrom app.main import app\nprint\\('FastAPI app loaded successfully!'\\)\nprint\\(f'Routes: {len\\(app.routes\\)}'\\)\nfor r in app.routes:\n    if hasattr\\(r, 'path'\\):\n        print\\(f'  {r.path}'\\)\n\" 2>&1)",
-      "Bash(curl -s -X POST http://localhost:8000/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"username\"\"\"\":\"\"\"\"admin\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"admin123\"\"\"\"}')"
+      "Bash(curl -s -X POST http://localhost:8000/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"username\"\"\"\":\"\"\"\"admin\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"admin123\"\"\"\"}')",
+      "Bash(git push:*)",
+      "Bash(npm --version)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "fal-ai",
+    "gemini",
+    "stitch",
+    "excalidraw"
+  ]
 }

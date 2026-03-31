@@ -19,10 +19,8 @@ class Settings(BaseSettings):
     # Redis (optional for PoC)
     redis_url: str = "redis://localhost:6379/0"
 
-    # Telegram (optional)
-    telegram_api_id: int = 0
-    telegram_api_hash: str = ""
-    telegram_phone: str = ""
+    # Telegram Bot
+    telegram_bot_token: str = ""
 
     # CORS
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
