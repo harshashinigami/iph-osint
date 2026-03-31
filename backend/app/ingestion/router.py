@@ -67,6 +67,14 @@ async def collect_telegram_feed(db: AsyncSession = Depends(get_db)):
     return result
 
 
+@router.post("/process")
+async def process_posts(db: AsyncSession = Depends(get_db)):
+    """Run NLP processing on unprocessed posts."""
+    from app.processing.pipeline import process_unprocessed
+    result = await process_unprocessed(db)
+    return result
+
+
 @router.get("/posts")
 async def list_posts(platform: str = None, limit: int = 50, offset: int = 0, db: AsyncSession = Depends(get_db)):
     query = select(RawPost).order_by(RawPost.collected_at.desc()).limit(limit).offset(offset)
