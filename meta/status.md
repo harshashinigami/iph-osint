@@ -17,13 +17,16 @@
 - [x] Backend scaffold: 34 API routes, 12 DB tables, JWT auth
 - [x] Frontend scaffold: React + Vite + Tailwind + 6 pages (Login, Dashboard, Graph, Alerts, Sources, Keywords, Reports)
 - [x] Telegram bot token saved (7703810812:AAH...)
-- [ ] Seed data: run generator, validate 10K records
-- [ ] Dashboard UI: 9 widgets (charts, maps, graphs)
-- [ ] Entity graph: vis-network visualization
-- [ ] Alerts: management screen + SSE stream
-- [ ] Ingestion: RSS feeds + optional Telegram
-- [ ] Reports: PDF/DOCX generation
-- [ ] Deploy to Render.com
+- [x] Seed data: 10K posts, 122 entities, 561 relations, 200 alerts seeded on production
+- [x] Dashboard UI: KPI cards, threat level, platform breakdown, sentiment, entities, alerts, topics
+- [x] Entity graph: vis-network with color-coded nodes, filters, detail panel
+- [x] Alerts: filterable table, severity badges, acknowledge, detail panel
+- [x] Ingestion: RSS collector for 8 Indian news feeds (NDTV, Hindu, TOI, etc.)
+- [x] Reports: PDF and DOCX E-SitRep generation with 6 sections + download
+- [x] Deploy: Backend + Frontend + PostgreSQL live on Render.com
+- [ ] UI polish: test all pages visually, fix rendering issues
+- [ ] Telegram bot: wire up for live channel monitoring
+- [ ] Geo map: India heatmap on dashboard
 
 ## Blockers
 - No PostgreSQL or Docker on WSL2 (using SQLite locally — fine for PoC)

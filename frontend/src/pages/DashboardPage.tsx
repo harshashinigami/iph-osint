@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Activity, Users, AlertTriangle, Radio, TrendingUp } from 'lucide-react';
-import { getStats, getPlatformBreakdown, getSentimentOverview, getThreatLevel, getTopEntities, getRecentAlerts, getTrendingTopics } from '../api/endpoints';
-import type { DashboardStats, PlatformData, SentimentData, ThreatLevel, EntityItem, AlertItem, TopicData } from '../types';
+import { getStats, getPlatformBreakdown, getSentimentOverview, getThreatLevel, getTopEntities, getRecentAlerts, getTrendingTopics, getGeoData } from '../api/endpoints';
+import type { DashboardStats, PlatformData, SentimentData, ThreatLevel, EntityItem, AlertItem, TopicData, GeoData } from '../types';
+import GeoMap from '../components/dashboard/GeoMap';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number | string; icon: React.ElementType; color: string }) {
   return (
@@ -42,13 +43,14 @@ export default function DashboardPage() {
   const [topEntities, setTopEntities] = useState<EntityItem[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [topics, setTopics] = useState<TopicData[]>([]);
+  const [geoData, setGeoData] = useState<GeoData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       getStats(), getPlatformBreakdown(), getSentimentOverview(),
-      getThreatLevel(), getTopEntities(), getRecentAlerts(10), getTrendingTopics(),
-    ]).then(([s, p, sent, t, e, a, top]) => {
+      getThreatLevel(), getTopEntities(), getRecentAlerts(10), getTrendingTopics(), getGeoData(),
+    ]).then(([s, p, sent, t, e, a, top, geo]) => {
       setStats(s.data);
       setPlatforms(p.data);
       setSentiment(sent.data);
@@ -56,6 +58,7 @@ export default function DashboardPage() {
       setTopEntities(e.data);
       setAlerts(a.data);
       setTopics(top.data);
+      setGeoData(geo.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -171,6 +174,14 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Geo Intelligence Map */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="col-span-2 bg-slate-900 rounded-xl p-5 border border-slate-700">
+          <h3 className="text-sm text-slate-400 uppercase tracking-wider mb-4">Geo Intelligence - India Threat Map</h3>
+          <GeoMap data={geoData} />
         </div>
       </div>
 

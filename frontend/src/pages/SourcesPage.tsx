@@ -8,9 +8,11 @@ export default function SourcesPage() {
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [seeding, setSeeding] = useState(false);
   const [collecting, setCollecting] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
 
   const load = () => getSources().then(({ data }) => setSources(data));
-  useEffect(() => { load(); }, []);
+  const loadPosts = () => api.get('/api/v1/ingestion/posts?limit=20').then(({ data }) => setPosts(data));
+  useEffect(() => { load(); loadPosts(); }, []);
 
   const handleToggle = async (id: string, active: boolean) => {
     await toggleSource(id, !active);
@@ -94,6 +96,26 @@ export default function SourcesPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Recent Posts */}
+      <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+          <h3 className="text-sm text-slate-400 uppercase tracking-wider">Recent Ingested Posts</h3>
+          <button onClick={loadPosts} className="text-xs text-blue-400 hover:text-blue-300">Refresh</button>
+        </div>
+        <div className="max-h-96 overflow-y-auto">
+          {posts.map((p) => (
+            <div key={p.id} className="p-3 border-b border-slate-800 hover:bg-slate-800/50">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300 capitalize">{p.platform}</span>
+                <span className="text-xs text-slate-500">{p.author_name}</span>
+                <span className="text-xs text-slate-600">{new Date(p.collected_at).toLocaleString()}</span>
+              </div>
+              <p className="text-sm text-slate-300">{p.content}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

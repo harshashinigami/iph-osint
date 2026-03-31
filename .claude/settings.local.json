@@ -57,7 +57,8 @@
       "Bash(curl:*)",
       "Bash(DATABASE_URL=\"postgresql+asyncpg://iph_db_user:ybYZ85ZlWw9p0486vH7v0vlrRHX3rdk3@dpg-d75qkluslomc73e09t2g-a/iph_db\" python3 -c \":*)",
       "Bash(DATABASE_URL=\"postgresql+asyncpg://test:test@localhost/test\" python3 -c \"\nfrom app.config import get_settings\nget_settings.cache_clear\\(\\)\ns = get_settings\\(\\)\nprint\\(f'DB URL starts with: {s.database_url[:20]}'\\)\nprint\\('Config loaded OK'\\)\n\" 2>&1)",
-      "Bash(grep \"^---\\\\|^Seeded\\\\|^Token\\\\|data points\\\\|entities$\\\\|geo points\\\\|alerts$\\\\|topics$\\\\|keywords$\\\\|sources$\\\\|reports$\\\\|rules$\\\\|Nodes\\\\|acknowledged\\\\|SIMULATION\\\\|ok\\\\|error\" /home/harsha/.claude/projects/-home-harsha-projects-iph/1fac94ec-7ceb-4c83-97bf-181e4b46a9de/tool-results/b7x51ni9z.txt)"
+      "Bash(grep \"^---\\\\|^Seeded\\\\|^Token\\\\|data points\\\\|entities$\\\\|geo points\\\\|alerts$\\\\|topics$\\\\|keywords$\\\\|sources$\\\\|reports$\\\\|rules$\\\\|Nodes\\\\|acknowledged\\\\|SIMULATION\\\\|ok\\\\|error\" /home/harsha/.claude/projects/-home-harsha-projects-iph/1fac94ec-7ceb-4c83-97bf-181e4b46a9de/tool-results/b7x51ni9z.txt)",
+      "Bash(RENDER_API=\"rnd_S4f1vSvz5qVp6FE0jzwlMgdGg1YK\" echo \"=== Backend ===\" curl -s -H \"Authorization: Bearer $RENDER_API\" \"https://api.render.com/v1/services/srv-d75rodbuibrs73btgve0/deploys?limit=1\")"
     ]
   },
   "disabledMcpjsonServers": [
