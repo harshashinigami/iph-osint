@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield, SlidersHorizontal, Database
+  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield, SlidersHorizontal, Database, Globe
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/', icon: Globe, label: 'Geo Intel' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/search', icon: Search, label: 'Search' },
   { to: '/sources', icon: Database, label: 'Sources' },
   { to: '/keywords', icon: Settings, label: 'Keywords' },

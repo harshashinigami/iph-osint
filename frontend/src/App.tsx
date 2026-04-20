@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
+import GeoIntelPage from './pages/GeoIntelPage';
 import DashboardPage from './pages/DashboardPage';
 import SourcesPage from './pages/SourcesPage';
 import KeywordsPage from './pages/KeywordsPage';
@@ -25,7 +26,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/" element={<GeoIntelPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/sources" element={<SourcesPage />} />
             <Route path="/keywords" element={<KeywordsPage />} />
