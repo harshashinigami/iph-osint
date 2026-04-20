@@ -1,19 +1,32 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield, SlidersHorizontal, Database, Globe
+  LayoutDashboard, Search, Network, Bell, FileText, Settings, LogOut, Shield, SlidersHorizontal, Database, Globe,
+  Camera, Radar, Target, Languages, Fingerprint, Award
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
-const navItems = [
+const navItems: Array<
+  | { kind?: 'item'; to: string; icon: React.ElementType; label: string }
+  | { kind: 'section'; label: string }
+> = [
   { to: '/', icon: Globe, label: 'Geo Intel' },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { kind: 'section', label: 'BEL Capability Modules' },
+  { to: '/ephemeral',     icon: Camera,      label: 'Ephemeral Capture' },
+  { to: '/narratives',    icon: Radar,       label: 'Coordinated Narr.' },
+  { to: '/investigation', icon: Target,      label: 'Investigation' },
+  { to: '/multilingual',  icon: Languages,   label: 'Multilingual NLP' },
+  { to: '/id-scan',       icon: Fingerprint, label: 'ID Scan' },
+  { to: '/credibility',   icon: Award,       label: 'Credibility' },
+  { to: '/resilience',    icon: Shield,      label: 'Resilience' },
+  { kind: 'section', label: 'Platform' },
   { to: '/search', icon: Search, label: 'Search' },
   { to: '/sources', icon: Database, label: 'Sources' },
-  { to: '/keywords', icon: Settings, label: 'Keywords' },
+  { to: '/keywords', icon: SlidersHorizontal, label: 'Keywords' },
   { to: '/graph', icon: Network, label: 'Entity Graph' },
   { to: '/alerts', icon: Bell, label: 'Alerts' },
   { to: '/reports', icon: FileText, label: 'Reports' },
-  { to: '/settings', icon: SlidersHorizontal, label: 'Settings' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar() {
@@ -74,8 +87,18 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-0.5">
-        {navItems.map(({ to, icon: Icon, label }) => {
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        {navItems.map((item, idx) => {
+          if ('kind' in item && item.kind === 'section') {
+            return (
+              <div key={`sec-${idx}`} className="pt-3 pb-1 px-3">
+                <p className="text-[9px] font-mono uppercase tracking-[0.2em]" style={{ color: 'rgba(0,240,255,0.4)' }}>
+                  {item.label}
+                </p>
+              </div>
+            );
+          }
+          const { to, icon: Icon, label } = item as { to: string; icon: React.ElementType; label: string };
           const isActive = to === '/'
             ? location.pathname === '/'
             : location.pathname.startsWith(to);
@@ -84,7 +107,7 @@ export default function Sidebar() {
               key={to}
               to={to}
               end={to === '/'}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 font-medium ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all duration-150 font-medium ${
                 isActive
                   ? 'text-white'
                   : 'text-cyan-500/50 hover:text-cyan-300/80'

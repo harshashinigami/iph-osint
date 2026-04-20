@@ -12,6 +12,13 @@ import AlertsPage from './pages/AlertsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import SearchPage from './pages/SearchPage';
+import EphemeralPage from './pages/EphemeralPage';
+import CoordinatedNarrativesPage from './pages/CoordinatedNarrativesPage';
+import InvestigationModePage from './pages/InvestigationModePage';
+import MultilingualPage from './pages/MultilingualPage';
+import IdScanPage from './pages/IdScanPage';
+import CredibilityPage from './pages/CredibilityPage';
+import ResiliencePage from './pages/ResiliencePage';
 
 /** Catch-all: send unauthenticated users to /login, authenticated to /. */
 function CatchAll() {
@@ -28,6 +35,13 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<GeoIntelPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/ephemeral" element={<EphemeralPage />} />
+            <Route path="/narratives" element={<CoordinatedNarrativesPage />} />
+            <Route path="/investigation" element={<InvestigationModePage />} />
+            <Route path="/multilingual" element={<MultilingualPage />} />
+            <Route path="/id-scan" element={<IdScanPage />} />
+            <Route path="/credibility" element={<CredibilityPage />} />
+            <Route path="/resilience" element={<ResiliencePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/sources" element={<SourcesPage />} />
             <Route path="/keywords" element={<KeywordsPage />} />
